@@ -1,16 +1,17 @@
-# Dockerfile for Render - PHP + Apache with mysqli
 FROM php:8.2-apache
 
-# Copy project files
-COPY . /var/www/html/
-
-# Install mysqli and required extensions
+# Install MySQL extensions
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
-# Ensure permissions (optional)
-RUN chown -R www-data:www-data /var/www/html
+# Copy project
+COPY . /var/www/html/
 
-# Expose port 80
-EXPOSE 80
+# Render requires Apache to listen on $PORT
+RUN sed -i "s/Listen 80/Listen ${PORT}/" /etc/apache2/ports.conf
+RUN sed -i "s/:80>/:${PORT}>/" /etc/apache2/sites-enabled/000-default.conf
 
-# Apache runs by default in this image
+# Expose the Render port
+EXPOSE ${PORT}
+
+# Start apache
+CMD ["apache2-foreground"]
